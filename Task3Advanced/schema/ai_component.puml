@@ -1,0 +1,16 @@
+@startuml C4_AI_Components
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+Container(ai, "AI Engine", "Python ML")
+
+Component(preprocess, "Preprocessing", "Обработка данных медицинских исследований")
+Component(model_exec, "Model Execution", "Запуск моделей ML")
+Component(model_registry, "Model Registry Client", "Получение лучших моделей")
+
+Component(events, "Event Producer", "Публикация результатов диагностики")
+
+Rel(preprocess, model_exec, "Передача подготовленных данных")
+Rel(model_exec, model_registry, "Загрузка модели")
+Rel(model_exec, events, "Публикация результатов")
+
+@enduml
