@@ -1,0 +1,19 @@
+@startuml C4_DataPlatform_Components
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+Container(dp, "Data Platform")
+
+Component(stream, "Streaming Layer", "Kafka/YMQ")
+Component(lake, "Data Lake Zones", "raw, cleaned, curated")
+Component(dwh, "ClickHouse DWH", "Агрегаты и витрины")
+Component(catalog, "Data Catalog", "Схемы, lineage, доступы")
+Component(transform, "ETL/ELT Pipelines", "Airflow/Dataproc")
+Component(bi, "BI Portal", "Self-service отчёты")
+
+Rel(stream, lake, "Потоковые ingestion")
+Rel(lake, transform, "Обработка")
+Rel(transform, dwh, "Загрузка витрин")
+Rel(dwh, bi, "Использование витрин")
+Rel(catalog, lake, "Схемы")
+Rel(catalog, dwh, "Схемы и lineage")
+@enduml

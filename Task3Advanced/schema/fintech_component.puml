@@ -1,0 +1,18 @@
+@startuml C4_Fintech_Components
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+Container(ft, "Финтех-сервисы", "Golang/Java")
+
+Component(payments, "Payments Service", "Оплаты, операции")
+Component(cards, "Card Management", "Управление картами")
+Component(loans, "Loan Service", "Кредиты и риск-профили")
+Component(auth, "Auth Service", "IAM + JWT")
+
+Component(event_pub, "Event Publisher", "Отправка событий в Kafka")
+
+Rel(auth, payments, "Проверка токена")
+Rel(payments, event_pub, "Публикация транзакций")
+Rel(cards, event_pub, "Публикация операций по картам")
+Rel(loans, event_pub, "Публикация событий по кредитам")
+
+@enduml

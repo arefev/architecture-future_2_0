@@ -1,0 +1,59 @@
+@startuml C4_Containers
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+LAYOUT_TOP_DOWN()
+
+Person(business, "Бизнес-пользователи", "Сотрудники доменов: финтех, медицина, ИИ, клиники")
+Person(customer, "Клиенты", "Пациенты и пользователи финтех-услуг")
+
+System_Boundary(b2, "Будущее 2.0 (Целевая архитектура)") {
+
+    Container(api_gateway, "API Gateway", "Kong / Yandex API Gateway", "Единая точка входа для внешних и внутренних API, авторизация, rate limiting")
+
+    Container_Boundary(fintech, "Финтех-домен") {
+        Container(ft_apps, "Финтех-сервисы", "Golang/Java + Kubernetes", "Операции со счетами, карты, кредиты")
+        Container(ft_db, "Fintech DB", "PostgreSQL/Yandex Managed", "DDD-ориентированное хранение данных")
+    }
+
+    Container_Boundary(med, "Медицинский домен") {
+        Container(med_apps, "Сервисы медицинских данных", "Python/FastAPI", "Работа с медицинскими данными и профилями пациентов")
+        Container(med_store, "Medical Data Storage", "Object Storage + ClickHouse", "Истории болезней, результаты исследований")
+    }
+
+    Container_Boundary(ai, "ИИ-домен") {
+        Container(ai_service, "AI Engine", "Python ML / GPU", "Модельные сервисы: диагностика, анализ исследований")
+        Container(ai_feature, "Feature Store", "Redis/ClickHouse", "Фичи моделей")
+        Container(ai_model, "Model Registry", "MLflow", "Регистрация и версии моделей")
+    }
+
+    Container_Boundary(data, "Data Platform / Витрина данных") {
+        Container(dp_lake, "Data Lake", "Yandex Object Storage", "Сырые и очищенные данные всех доменов")
+        Container(dp_stream, "Streaming Platform", "Kafka / Yandex Message Queue", "События всех доменов, DWH-bridge")
+        Container(dp_dwh, "DWH NextGen", "ClickHouse", "Агрегированные витрины, KPI")
+        Container(dp_self, "Self-service BI Portal", "Superset/Power BI Embedded", "Конструктор отчётов, доступ по ролям")
+    }
+
+    Container(integration, "Event Integration Layer", "Kafka Connect / Camel bridge", "Обмен доменными событиями между доменами. Bridge для легаси.")
+}
+
+Rel(customer, api_gateway, "Запросы", "HTTPS/REST")
+Rel(business, dp_self, "Доступ к данным", "HTTPS")
+
+Rel(api_gateway, ft_apps, "Финансовые операции")
+Rel(api_gateway, med_apps, "Медицинские данные")
+Rel(api_gateway, ai_service, "Запрос анализа") 
+
+Rel(ft_apps, dp_stream, "Публикация событий", "Kafka")
+Rel(med_apps, dp_stream, "Публикация событий", "Kafka")
+Rel(ai_service, dp_stream, "Публикация событий", "Kafka")
+
+Rel(dp_stream, dp_lake, "Запись сырых событий")
+Rel(dp_lake, dp_dwh, "ETL/ELT пайплайны")
+
+Rel(dp_dwh, dp_self, "Агрегаты")
+Rel(med_apps, ai_service, "Передача данных исследований")
+
+Rel(integration, ft_apps, "Legacy → Event Bridge")
+Rel(integration, med_apps, "Legacy → Event Bridge")
+
+@enduml
